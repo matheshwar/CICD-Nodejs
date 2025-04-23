@@ -39,7 +39,7 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         EC2_HOST: ${{ secrets.EC2_HOST }}
-        EC2_USER: ${{ secrets.EC2_USER }}
+        EC2_USER: ubuntu
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
@@ -55,7 +55,7 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         EC2_HOST: ${{ secrets.EC2_HOST }}
-        EC2_USER: ${{ secrets.EC2_USER }}
+        EC2_USER: ubuntu
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
@@ -74,7 +74,12 @@ jobs:
 
           # Navigate to the app directory and deploy
           cd /home/$EC2_USER/app
-          sudo docker-compose pull
-          sudo docker-compose up -d
+          if [ -f "docker-compose.yml" ]; then
+            sudo docker-compose pull
+            sudo docker-compose up -d
+          else
+            echo "docker-compose.yml not found in /home/$EC2_USER/app"
+            exit 1
+          fi
         EOF
         rm private_key.pem
