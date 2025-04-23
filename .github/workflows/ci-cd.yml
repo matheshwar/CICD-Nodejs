@@ -39,27 +39,25 @@ jobs:
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         EC2_HOST: ${{ secrets.EC2_HOST }}
-        EC2_USER: ubuntu
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
-        ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << 'EOF'
-          if [ -d "/home/$EC2_USER/app" ]; then
-            rm -rf /home/$EC2_USER/app
+        ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$EC2_HOST << 'EOF'
+          if [ -d "/home/ubuntu/app" ]; then
+            rm -rf /home/ubuntu/app
           fi
         EOF
-        scp -o StrictHostKeyChecking=no -i private_key.pem -r ./* $EC2_USER@$EC2_HOST:/home/$EC2_USER/app
+        scp -o StrictHostKeyChecking=no -i private_key.pem -r ./* ubuntu@$EC2_HOST:/home/ubuntu/app
         rm private_key.pem
 
     - name: Deploy to EC2
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
         EC2_HOST: ${{ secrets.EC2_HOST }}
-        EC2_USER: ubuntu
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key.pem
         chmod 600 private_key.pem
-        ssh -o StrictHostKeyChecking=no -i private_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$EC2_HOST << 'EOF'
           # Install Docker
           if ! [ -x "$(command -v docker)" ]; then
             sudo apt-get update
@@ -73,12 +71,12 @@ jobs:
           fi
 
           # Navigate to the app directory and deploy
-          cd /home/$EC2_USER/app
+          cd /home/ubuntu/app
           if [ -f "docker-compose.yml" ]; then
             sudo docker-compose pull
             sudo docker-compose up -d
           else
-            echo "docker-compose.yml not found in /home/$EC2_USER/app"
+            echo "docker-compose.yml not found in /home/ubuntu/app"
             exit 1
           fi
         EOF
